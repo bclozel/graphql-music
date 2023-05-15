@@ -1,0 +1,11 @@
+services:
+  mongo:
+    image: mongo
+    ports:
+      - '27017:27017'
+  zipkin:
+    image: openzipkin/zipkin-slim
+    ports:
+      - '9411:9411'
+    labels:
+      org.springframework.boot.service-connection: zipkin
