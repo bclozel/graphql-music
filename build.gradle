@@ -24,6 +24,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-graphql'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'net.datafaker:datafaker:1.9.0'
+	implementation 'com.graphql-java:graphql-java-extended-scalars:20.2'
 	implementation 'io.micrometer:micrometer-tracing-bridge-brave'
 	implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
