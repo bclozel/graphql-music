@@ -14,11 +14,16 @@ import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.graphql.data.query.ScrollSubrange;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
@@ -46,15 +51,35 @@ public class TracksController {
         return this.mongoTemplate.scroll(query, Track.class);
     }
 
-    @SchemaMapping
-    public Mono<Album> album(Track track) {
-        return this.mongoTemplate.findById(track.getAlbumId(), Album.class)
-                .switchIfEmpty(Mono.error(new IllegalStateException()));
+    @BatchMapping
+    public Mono<Map<Track, Album>> album(List<Track> tracks) {
+        Set<String> albumIds = tracks.stream().map(Track::getAlbumId).collect(Collectors.toSet());
+        return this.mongoTemplate.query(Album.class)
+                .matching(query(where("id").in(albumIds)))
+                .all()
+                .collectMap(Album::getId, Function.identity())
+                .map(albumMap -> {
+                    Map<Track, Album> map = new HashMap<>();
+                    tracks.forEach(track -> map.put(track, albumMap.get(track.getAlbumId())));
+                    return map;
+                });
     }
 
-    @SchemaMapping
-    public Flux<Artist> artists(Track track) {
-        return this.mongoTemplate.query(Artist.class).matching(query(where("id").in(track.getArtistIds()))).all();
+    @BatchMapping
+    public Mono<Map<Track, List<Artist>>> artists(List<Track> tracks) {
+        Set<String> artistIds = tracks.stream()
+                .flatMap(track -> track.getArtistIds().stream())
+                .collect(Collectors.toSet());
+        return this.mongoTemplate.query(Artist.class)
+                .matching(query(where("id").in(artistIds)))
+                .all()
+                .collectMap(Artist::getId, Function.identity())
+                .map(artistMap -> {
+                    MultiValueMap<Track, Artist> map = new LinkedMultiValueMap<>();
+                    tracks.forEach(track -> track.getArtistIds()
+                            .forEach(artistId -> map.add(track, artistMap.get(artistId))));
+                    return map;
+                });
     }
 
     @SchemaMapping
