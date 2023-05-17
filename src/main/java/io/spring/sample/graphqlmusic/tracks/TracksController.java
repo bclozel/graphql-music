@@ -9,12 +9,17 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.data.mongodb.core.query.TextQuery;
 import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.BatchMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.graphql.data.query.ScrollSubrange;
 import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
@@ -57,9 +62,11 @@ public class TracksController {
         return this.mongoTemplate.query(Track.class).matching(query(where("id").in(album.getTrackIds()))).all();
     }
 
-    @SchemaMapping
-    public Mono<LyricsData> lyrics(Track track) {
-        return this.lyricsService.fetchLyrics(track.getId());
+    @BatchMapping
+    public Mono<Map<Track, LyricsData>> lyrics(List<Track> tracks) {
+        Map<String, Track> trackIds = tracks.stream().collect(Collectors.toMap(Track::getId, track -> track));
+        return this.lyricsService.fetchLyrics(trackIds.keySet())
+                .collectMap(lyricsData -> trackIds.get(lyricsData.trackId()));
     }
 
 }
