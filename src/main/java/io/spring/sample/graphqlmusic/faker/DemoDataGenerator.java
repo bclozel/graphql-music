@@ -40,9 +40,9 @@ public class DemoDataGenerator {
         return tracks;
     }
 
-    public LyricsData createLyrics(String songId) {
+    public LyricsData createLyrics(String trackId) {
         try {
-            return new LyricsData(songId, URI.create("https://lyrics.example.org/file/" + songId + ".txt").toURL());
+            return new LyricsData(trackId, URI.create("https://lyrics.example.org/file/" + trackId + ".txt").toURL());
         } catch (MalformedURLException exc) {
             throw new IllegalStateException("could not create lyrics URL", exc);
         }

@@ -29,18 +29,18 @@ public class LyricsService {
         this.properties = properties;
     }
 
-    public Mono<LyricsData> fetchLyrics(String songId) {
-        return Mono.just(this.dataGenerator.createLyrics(songId))
+    public Mono<LyricsData> fetchLyrics(String trackId) {
+        return Mono.just(this.dataGenerator.createLyrics(trackId))
                 .delayElement(properties.getLyrics().getDelay())
-                .doOnSubscribe(subscription ->  logger.info("Starting to fetch lyrics for song {}", songId))
-                .doOnNext(lyrics -> logger.info("Fetched lyrics for song {}", songId));
+                .doOnSubscribe(subscription ->  logger.info("Starting to fetch lyrics for song {}", trackId))
+                .doOnNext(lyrics -> logger.info("Fetched lyrics for song {}", trackId));
     }
 
-    public Flux<LyricsData> fetchLyrics(Collection<String> songIds) {
-        return Flux.fromIterable(songIds)
+    public Flux<LyricsData> fetchLyrics(Collection<String> trackIds) {
+        return Flux.fromIterable(trackIds)
                 .map(this.dataGenerator::createLyrics)
                 .delaySubscription(properties.getLyrics().getDelay())
-                .doOnComplete(() -> logger.info("Fetched lyrics for {} songs", songIds.size()));
+                .doOnComplete(() -> logger.info("Fetched lyrics for {} songs", trackIds.size()));
     }
 
 }

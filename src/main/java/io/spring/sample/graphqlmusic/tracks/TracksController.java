@@ -91,7 +91,7 @@ public class TracksController {
     public Mono<Map<Track, LyricsData>> lyrics(List<Track> tracks) {
         Map<String, Track> trackIds = tracks.stream().collect(Collectors.toMap(Track::getId, track -> track));
         return this.lyricsService.fetchLyrics(trackIds.keySet())
-                .collectMap(lyricsData -> trackIds.get(lyricsData.songId()));
+                .collectMap(lyricsData -> trackIds.get(lyricsData.trackId()));
     }
 
 }
